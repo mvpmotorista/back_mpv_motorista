@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Template</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #0c648c;
+      margin: 0;
+      padding: 0;
+    }
+
+    .email-container {
+      max-width: 600px;
+      margin: 30px auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      text-align: left;
+    }
+
+    .header h2 {
+      color: #006400;
+      margin-bottom: 0;
+    }
+
+    .content {
+      font-size: 16px;
+      color: #333333;
+      margin-top: 20px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      max-width: 300px;
+      margin: 30px 0;
+      padding: 14px 0;
+      background-color: #00a859;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .footer {
+      margin-top: 40px;
+      font-size: 14px;
+      color: #777777;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h2>Olá {{ nome_completo }},</h2>
+    </div>
+    <div class="content">
+      <p>
+        Você foi convidado para fazer parte da plataforma <strong>Abrasileirar</strong>,
+        que conecta cultura e educação para estrangeiros em busca de se tornarem verdadeiros brasileiros! 🇧🇷
+      </p>
+      <p>Para começar, finalize seu cadastro clicando no botão abaixo:</p>
+
+      <a href="{{host}}primeiro-acesso?token={{ token }}" style="
+        display: block;
+        width: 100%;
+        max-width: 300px;
+        margin: 30px 0;
+        padding: 14px 0;
+        background-color: #00a859;
+        color: #ffffff !important;
+        text-decoration: none !important;
+        border-radius: 6px;
+        font-weight: bold;
+        text-align: center;
+      ">
+        Finalizar Cadastro
+      </a>
+      <!-- <a href="{{ host }}/primeiro-acesso?token={{ token }}" class="btn">Finalizar Cadastro</a> -->
+
+      <p>Este link é válido por <strong>72 horas</strong>.<br>
+        Caso expire, peça ao seu administrador um novo convite.</p>
+      <p>Bem-vindo à nossa comunidade!<br>
+        Equipe Abrasileirar 💛💚</p>
+    </div>
+    <div class="footer">
+      © 2025 Abrasileirar. Todos os direitos reservados.
+    </div>
+  </div>
+</body>
+
+</html>

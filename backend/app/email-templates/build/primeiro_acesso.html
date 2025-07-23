@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Primeiro Acesso</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 60px auto;
+      background-color: #fff;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #1d3557;
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    input[disabled] {
+      background-color: #e9ecef;
+      color: #6c757d;
+    }
+
+    .btn {
+      width: 100%;
+      background-color: #2a9d8f;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #21867a;
+    }
+
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 13px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Primeiro Acesso</h2>
+    <form method="POST" action="/finalizar-conta">
+      <label for="email">E-mail</label>
+      <input type="email" id="email" name="email" value="{{ email }}" disabled />
+
+      <label for="senha">Nova Senha</label>
+      <input type="password" id="senha" name="senha" placeholder="Digite sua nova senha" required />
+
+      <label for="confirmar_senha">Confirmar Senha</label>
+      <input type="password" id="confirmar_senha" name="confirmar_senha" placeholder="Confirme sua senha" required />
+
+      <button type="submit" class="btn">Criar Credenciais</button>
+    </form>
+    <div class="footer">
+      © 2025 Abrasileirar. Todos os direitos reservados.
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cancelamento de Aula</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f6f6f6;
+      margin: 0;
+      padding: 0;
+    }
+    .email-container {
+      max-width: 650px;
+      margin: 30px auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .header h2 {
+      color: #c0392b;
+      text-align: center;
+    }
+    .content {
+      font-size: 16px;
+      color: #333333;
+      margin-top: 20px;
+    }
+    .highlight {
+      font-weight: bold;
+    }
+    .btn {
+      display: inline-block;
+      margin-top: 25px;
+      padding: 12px 24px;
+      background-color: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+    .footer {
+      margin-top: 40px;
+      font-size: 14px;
+      color: #777777;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h2>Cancelamento de Aula</h2>
+    </div>
+    <div class="content">
+      <p>Olá {{ nome_destinatario }},</p>
+
+      <p>Informamos que uma aula agendada para:</p>
+
+      <p>
+        📅 <span class="highlight">Data:</span> {{ data_aula }}<br>
+        🕐 <span class="highlight">Horário:</span> {{ hora_inicio }} – {{ hora_termino }}<br>
+        👤 <span class="highlight">Aluno:</span> {{ nome_aluno }}<br>
+        👨‍🏫 <span class="highlight">Professor:</span> {{ nome_professor }}
+      </p>
+
+      <p>foi <strong>cancelada</strong> por {{ quem_cancelou }}.</p>
+
+      <p>
+        📝 <span class="highlight">Tipo de cancelamento:</span> {{ tipo_cancelamento }}
+      </p>
+
+      {% if tipo_cancelamento == "C‑ – Cancelamento com cobrança" %}
+        <p>
+          📎 Um comprovante foi anexado a esta ação. Você pode visualizá-lo acessando os detalhes da aula no sistema.
+        </p>
+      {% endif %}
+
+      {% if observacao %}
+        <p>💬 <strong>Observação:</strong> “{{ observacao }}”</p>
+      {% endif %}
+
+      <p style="text-align: center;">
+        👉 <a href="{{ link_detalhes }}" class="btn">Ver Detalhes da Aula</a>
+      </p>
+
+      <p>Em caso de dúvidas, entre em contato com a coordenação.</p>
+      <p>Abraços,<br>Equipe Abrasileirar</p>
+    </div>
+    <div class="footer">
+      © 2025 Abrasileirar. Todos os direitos reservados.
+    </div>
+  </div>
+</body>
+</html>

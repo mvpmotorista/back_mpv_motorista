@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: fastapi-gunicorn-app
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: ""
+    startCommand: gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:10000
+    autoDeploy: true
