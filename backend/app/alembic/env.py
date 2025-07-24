@@ -1,11 +1,12 @@
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import engine_from_config, pool, text
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -25,7 +26,9 @@ from sqlmodel import SQLModel
 
 # from app.models. import User  # noqa
 from app.core.config import settings  # noqa
-from  app.users.models.users  import *  # noqa
+from app.core.models.core import *  # noqa
+from app.users.models.users import *  # noqa
+from app.users.models.perfis import *  # noqa
 
 target_metadata = SQLModel.metadata
 
@@ -53,7 +56,10 @@ def run_migrations_offline():
     """
     url = get_url()
     context.configure(
-        url=url, target_metadata=target_metadata, literal_binds=True, compare_type=True
+        url=url,
+        target_metadata=target_metadata,
+        literal_binds=True,
+        compare_type=True,
     )
 
     with context.begin_transaction():
@@ -61,23 +67,40 @@ def run_migrations_offline():
 
 
 def run_migrations_online():
-    """Run migrations in 'online' mode.
-
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
-
-    """
     configuration = config.get_section(config.config_ini_section)
     configuration["sqlalchemy.url"] = get_url()
     connectable = engine_from_config(
         configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        echo=True
     )
-
+    print(configuration)
+    current_tenant = 'empresa'
     with connectable.connect() as connection:
+        if connection.dialect.name == "postgresql":
+            print('set search_path to "%s"' % current_tenant)
+            # set search path on the connection, which ensures that
+            # PostgreSQL will emit all CREATE / ALTER / DROP statements
+            # in terms of this schema by default
+
+            connection.execute(text('set SESSION search_path to "%s"' % current_tenant))
+            # in SQLAlchemy v2+ the search path change needs to be committed
+            connection.commit()
+        elif connection.dialect.name in ("mysql", "mariadb"):
+            # set "USE" on the connection, which ensures that
+            # MySQL/MariaDB will emit all CREATE / ALTER / DROP statements
+            # in terms of this schema by default
+
+            connection.execute(text('USE %s' % current_tenant))
+
+        # make use of non-supported SQLAlchemy attribute to ensure
+        # the dialect reflects tables in terms of the current tenant name
+        connection.dialect.default_schema_name = current_tenant
+
         context.configure(
-            connection=connection, target_metadata=target_metadata, compare_type=True
+            connection=connection,
+            target_metadata=target_metadata, compare_type=True
         )
 
         with context.begin_transaction():

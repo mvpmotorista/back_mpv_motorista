@@ -13,6 +13,9 @@ class Log(SQLModel):
     created_by: int | None
     updated_by: int | None
     deleted_by: int | None
+    __table_args__ = {
+        "schema": None
+    }
 
 
 class Status(Log, table=True):
