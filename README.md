@@ -11,10 +11,10 @@ Um template moderno e robusto para projetos FastAPI seguindo as melhores prátic
 - ✅ **SQLAlchemy** - ORM para interação com banco de dados
 - ✅ **Alembic** - Migrations de banco de dados
 - ✅ **Pydantic** - Validação de dados e serialização
+- ✅ **Multi-tenant Architecture** - Suporte para múltiplos inquilinos/organizações
 
 ## 🔮 Roadmap - Próximas Implementações
 
-- ☐ **Multi-tenant Architecture** - Suporte para múltiplos inquilinos/organizações
 - ☐ **UV Package Manager** - Migração do Poetry para UV (gerenciador mais rápido)
 - ☐ **Pytest** - Framework de testes completo
 - ☐ **Docker** - Containerização
