@@ -1,7 +1,7 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 
 from logging.config import fileConfig
 
@@ -26,9 +26,7 @@ from sqlmodel import SQLModel
 
 # from app.models. import User  # noqa
 from app.core.config import settings  # noqa
-from app.core.models.core import *  # noqa
-from app.users.models.users import *  # noqa
-from app.users.models.perfis import *  # noqa
+from app.core.models.core import Schemas
 
 target_metadata = SQLModel.metadata
 
@@ -69,14 +67,9 @@ def run_migrations_offline():
 def run_migrations_online():
     configuration = config.get_section(config.config_ini_section)
     configuration["sqlalchemy.url"] = get_url()
-    connectable = engine_from_config(
-        configuration,
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-        echo=True
-    )
+    connectable = engine_from_config(configuration, prefix="sqlalchemy.", poolclass=pool.NullPool)
     print(configuration)
-    current_tenant = 'empresa'
+    current_tenant = 'public'
     with connectable.connect() as connection:
         if connection.dialect.name == "postgresql":
             print('set search_path to "%s"' % current_tenant)
@@ -100,11 +93,29 @@ def run_migrations_online():
 
         context.configure(
             connection=connection,
-            target_metadata=target_metadata, compare_type=True
+            target_metadata=target_metadata,
+            compare_type=True,
+            version_table_schema=current_tenant,
+            include_object=validate_tenant(current_tenant),
         )
 
         with context.begin_transaction():
             context.run_migrations()
+
+
+def validate_tenant(current_tenant):
+    print('validar')
+
+    def inner(object, name, type_, reflected, compare_to):
+        print(1)
+        if type_ != 'table':
+            return True
+
+        result = object.schema == current_tenant
+
+        return result
+
+    return inner
 
 
 if context.is_offline_mode():

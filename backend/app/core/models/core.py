@@ -1,4 +1,5 @@
 from datetime import date, datetime
+import uuid
 
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -13,9 +14,15 @@ class Log(SQLModel):
     created_by: int | None
     updated_by: int | None
     deleted_by: int | None
-    __table_args__ = {
-        "schema": None
-    }
+    __table_args__ = {"schema": None}
+
+
+class Schemas(Log, table=True):
+    __tablename__: str = "schemas"  # type: ignore
+    __table_args__ = {"schema": 'public'}
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    nome: str = Field(max_length=100, nullable=False)
+    teste: str = Field(max_length=100, nullable=False)
 
 
 class Status(Log, table=True):
@@ -45,7 +52,7 @@ class Feriado(Log, table=True):
 class LogAtividade(Log, table=True):
     __tablename__: str = "log_atividade"  # type: ignore
     id: int | None = Field(default=None, primary_key=True)
-    perfil_id: int = Field(foreign_key="perfis.id", nullable=False)
+    # perfil_id: int = Field(foreign_key="perfis.id", nullable=False)
     acao: str = Field(nullable=False, max_length=255)
     detalhe: str = Field(nullable=False, max_length=500)
 

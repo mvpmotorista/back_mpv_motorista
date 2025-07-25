@@ -64,7 +64,7 @@ class UpdatePassword(SQLModel):
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
-    perfil_id: int | None = Field(default=None, foreign_key="perfis.id", nullable=True)
+    # perfil_id: int | None = Field(default=None, foreign_key="perfis.id", nullable=True)
 
 
 # Properties to return via API, id is always required
