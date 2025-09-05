@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from app.api.routes import login, private, users, utils, core, oauth
 from app.core.config import settings
-from backend.app.api.routes import perfil
+from app.api.routes import perfil
 
 api_router = APIRouter()
 api_router.include_router(login.router)

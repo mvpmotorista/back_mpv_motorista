@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -113,3 +113,14 @@ async def recover_password_html_content(email: str, session: AsyncSessionDep) ->
     email_data = generate_reset_password_email(email_to=user.email, email=email, token=password_reset_token)
 
     return HTMLResponse(content=email_data.html_content, headers={"subject:": email_data.subject})
+
+
+@router.post("/login/supabase", response_model=Token)
+async def login_supabase(session: AsyncSessionDep, token: Annotated[str, Body(..., embed=True)]) -> Token:
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    token = Token(
+        access_token=security.create_access_token(
+            '0b46e56b-0649-4831-990b-d02114b71b82', expires_delta=access_token_expires
+        )
+    )
+    return token

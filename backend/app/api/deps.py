@@ -34,7 +34,7 @@ async def get_shema() -> AsyncGenerator[AsyncSession, None]:
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 
-async def get_async_db(token: TokenDep) -> AsyncGenerator[AsyncSession, None]:
+async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         try:
             yield session
