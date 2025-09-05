@@ -71,7 +71,7 @@ def run_migrations_online():
     configuration["sqlalchemy.url"] = get_url()
     connectable = engine_from_config(configuration, prefix="sqlalchemy.", poolclass=pool.NullPool)
     print(configuration)
-    current_tenant = 'linux'
+    current_tenant = 'public'
     with connectable.connect() as connection:
         if connection.dialect.name == "postgresql":
             print('set search_path to "%s"' % current_tenant)

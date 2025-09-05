@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     # 60 minutes * 24 hours * 8 days = 8 days
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     FRONTEND_HOST: str = "http://localhost:8080"
+    BACKEND_HOST: str = "http://localhost:8000"
+    # Optional: where to redirect after successful OAuth (deep link or web URL)
+    FRONTEND_OAUTH_REDIRECT_URL: str = ""
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
     BACKEND_CORS_ORIGINS: Annotated[list[AnyUrl] | str, BeforeValidator(parse_cors)] = []
@@ -73,6 +76,16 @@ class Settings(BaseSettings):
         calendar.SATURDAY,
     ]
     DISPONIBILIDADE_JANELA:datetime.timedelta = datetime.timedelta(15)
+
+    # Google OAuth2
+    GOOGLE_CLIENT_ID: str = ''
+    GOOGLE_CLIENT_SECRET: str = ''
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def GOOGLE_REDIRECT_URI(self) -> str:
+        # Backend callback endpoint for Google OAuth
+        return f"{self.BACKEND_HOST.rstrip('/')}{self.API_V1_STR}/auth/google/callback"
 
     @computed_field  # type: ignore[prop-decorator]
     @property

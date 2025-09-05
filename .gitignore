@@ -8,6 +8,7 @@ htmlcov
 backend/.venv
 backend/venv
 .env
+.env.local
 .vscode
 backend/app/build
 .secrets
