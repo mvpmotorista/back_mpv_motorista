@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime, date
 import uuid
 from typing import Any
 
@@ -80,21 +81,24 @@ def create_user(*, session: AsyncSessionDep, user_in: UserCreate) -> Any:
     return user
 
 
-@router.patch("/me", response_model=UserPublic)
-def update_user_me(*, session: AsyncSessionDep, user_in: UserUpdateMe, current_user: CurrentUser) -> Any:
+class PatchUser(BaseModel):
+    nome: str | None = None
+    telefone: str | None = None
+    data_nascimento: date | None = None
+    genero: str | None = None
+
+
+@router.patch("/me")
+async def update_user_me(*, session: AsyncSessionDep, user_in: PatchUser, current_user: CurrentUser) -> Any:
     """
     Update own user.
     """
-    if user_in.email:
-        existing_user = crud.get_user_by_email(session=session, email=user_in.email)
-        if existing_user and existing_user.id != current_user.id:
-            raise HTTPException(status_code=409, detail="User with this email already exists")
-    user_data = user_in.model_dump(exclude_unset=True)
-    current_user.sqlmodel_update(user_data)
-    session.add(current_user)
-    session.commit()
-    session.refresh(current_user)
-    return current_user
+    for key, value in user_in.model_dump(exclude_unset=True):
+        setattr(current_user, key, value)
+
+    await session.commit()
+
+    return {}
 
 
 @router.patch("/me/password", response_model=Message)

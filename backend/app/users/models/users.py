@@ -1,3 +1,4 @@
+from datetime import date
 import uuid
 
 from pydantic import EmailStr
@@ -65,6 +66,8 @@ class User(UserBase, table=True):
     id: uuid.UUID = Field(primary_key=True)
     hashed_password: str
     genero: str | None = Field(default=None, max_length=10)
+    telefone: str | None = Field(default=None, max_length=30)
+    data_nascimento: date | None = Field(default=None)
 
 
 # Properties to return via API, id is always required
