@@ -17,9 +17,9 @@ class Perfil(Log, table=True):
     cpf: str | None = Field(default=None, max_length=11)
     foto: str | None = Field(default=None, max_length=255)
     tipo: str = Field(max_length=50)
+    genero: str = Field(max_length=10)
     hash: UUID = Field(default_factory=uuid.uuid4, unique=True, index=True)
     status_id: str | None = Field(foreign_key="status.id")
-    user_id: UUID | None = Field(foreign_key="user.id")
     email: EmailStr | None
     token: str | None = Field(max_length=20)
     telefone: str | None = Field(default=None, max_length=30)
@@ -29,7 +29,7 @@ class Endereco(Log, table=True):
     __tablename__: str = "enderecos"  # type: ignore
     id: int = Field(primary_key=True)
     perfil_id: int = Field(foreign_key="perfis.id")
-    perfil: Perfil = Relationship(back_populates="enderecos")
+    # perfil: Perfil = Relationship(back_populates="enderecos")
     logradouro: str | None = Field(default=None, max_length=100)
     numero: str | None = Field(default=None, max_length=10)
     complemento: str | None = Field(default=None, max_length=50)

@@ -3,6 +3,8 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
+import jwt
+from pydantic import BaseModel, ConfigDict
 from sqlmodel import col, delete, func, select
 
 from app import crud
@@ -15,7 +17,7 @@ from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 
 from app.users.models.perfis import Perfil
-from  app.users.models.users  import (
+from app.users.models.users import (
     Message,
     UpdatePassword,
     User,
@@ -26,6 +28,7 @@ from  app.users.models.users  import (
     UserUpdate,
     UserUpdateMe,
 )
+
 # from app.schemas.perfis import PerfilMe
 from app.utils import generate_new_account_email, send_email
 
@@ -206,3 +209,31 @@ def update_user(
 
     db_user = crud.update_user(session=session, db_user=db_user, user_in=user_in)
     return db_user
+
+
+class NewAcount(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+    token: str
+
+
+@router.post("/new_account", summary="Create a new account for passenger")
+async def criar_conta(payload: NewAcount, session: AsyncSessionDep):
+    decoded_payload = jwt.decode(payload.token, options={"verify_signature": False})
+    u = User(
+        id=decoded_payload['sub'],
+        email=decoded_payload['email'],
+        full_name=decoded_payload.get('full_name', ''),
+        is_active=True,
+        is_superuser=False,
+        role='user',
+        hashed_password='not_set',
+    )
+    session.add(u)
+    try:
+        await session.commit()
+    except Exception as ex:
+        raise ex
+        await session.rollback()
+        raise HTTPException(status_code=400, detail="Erro ao salvar perfil")
+
+    return {"message": "Conta criada com sucesso!"}

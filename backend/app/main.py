@@ -10,9 +10,9 @@ from fastapi.routing import APIRoute
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 
+from app.api.events import add_event_listener
 from app.api.main import api_router
 from app.core.config import settings
-from app.api.events import add_event_listener
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -43,18 +43,3 @@ if settings.all_cors_origins:
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 add_event_listener()
-
-# build_path = Path('app') / 'build' / 'web'
-
-
-# @app.get("/{full_path:path}")
-# async def spa_handler(full_path: str):
-#     file_path = build_path / full_path
-
-#     # Se o arquivo existe, serve diretamente (JS, WASM, assets, etc.)
-#     if file_path.is_file():
-#         return FileResponse(file_path)
-
-#     # Se for uma rota "virtual" (SPA), retorna o index.html
-#     index_path = build_path / "index.html"
-#     return FileResponse(index_path, headers={"Cache-Control": "no-store, no-cache, must-revalidate, max-age=0"})

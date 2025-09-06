@@ -29,7 +29,7 @@ class Status(Log, table=True):
     __tablename__: str = "status"  # type: ignore
     id: str | None = Field(default=None, primary_key=True)
     nome: str | None
-    perfis: list["Perfil"] = Relationship(back_populates="status")
+    # perfis: list["Perfil"] = Relationship(back_populates="status")
 
 
 class Municipio(Log, table=True):

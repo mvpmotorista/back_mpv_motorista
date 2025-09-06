@@ -4,6 +4,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
+import jwt
 
 # from app import crud
 from app.api.deps import AsyncSessionDep, CurrentUser, get_current_active_superuser
@@ -118,9 +119,6 @@ async def recover_password_html_content(email: str, session: AsyncSessionDep) ->
 @router.post("/login/supabase", response_model=Token)
 async def login_supabase(session: AsyncSessionDep, token: Annotated[str, Body(..., embed=True)]) -> Token:
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    token = Token(
-        access_token=security.create_access_token(
-            '0b46e56b-0649-4831-990b-d02114b71b82', expires_delta=access_token_expires
-        )
-    )
-    return token
+    decoded_payload = jwt.decode(token, options={"verify_signature": False})
+    novo_token = Token(access_token=security.create_access_token(subject=decoded_payload['sub'], expires_delta=access_token_expires))
+    return novo_token
