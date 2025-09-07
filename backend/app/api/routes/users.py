@@ -5,7 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 import jwt
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, model_serializer
 from sqlmodel import col, delete, func, select
 
 from app import crud
@@ -82,10 +82,19 @@ def create_user(*, session: AsyncSessionDep, user_in: UserCreate) -> Any:
 
 
 class PatchUser(BaseModel):
-    nome: str | None = None
+    nome: str | None
     telefone: str | None = None
     data_nascimento: date | None = None
     genero: str | None = None
+
+    @model_serializer
+    def serialize(self):
+        return {
+            "full_name": self.nome,
+            "telefone": self.telefone,
+            "data_nascimento": self.data_nascimento,
+            "genero": self.genero,
+        }
 
 
 @router.patch("/me")
@@ -93,11 +102,9 @@ async def update_user_me(*, session: AsyncSessionDep, user_in: PatchUser, curren
     """
     Update own user.
     """
-    for key, value in user_in.model_dump(exclude_unset=True):
+    for key, value in user_in.model_dump(exclude_unset=True).items():
         setattr(current_user, key, value)
-
     await session.commit()
-
     return {}
 
 
@@ -117,28 +124,31 @@ def update_password_me(*, session: AsyncSessionDep, body: UpdatePassword, curren
     return Message(message="Password updated successfully")
 
 
-@router.get("/me")
+class UserMe(BaseModel):
+    full_name: str | None = None
+    telefone: str | None = None
+    data_nascimento: date | None = None
+    email: str | None = None
+    genero: str | None = None
+
+    @model_serializer
+    def serialize(self):
+        return {
+            "nome": self.full_name,
+            "telefone": self.telefone,
+            "data_nascimento": self.data_nascimento,
+            "genero": self.genero,
+            "email": self.email,
+        }
+
+
+@router.get("/me", response_model=UserMe)
 async def read_user_me(current_user: CurrentUser, session: AsyncSessionDep) -> Any:
     """
     Get current user.
     """
-    query = (
-        select(
-            Perfil.nome,
-            Perfil.foto,
-            Perfil.hash,
-            Perfil.tipo,
-            Perfil.cor,
-            Perfil.tipo_aula,
-        )
-        .join(Perfil.status)
-        .where(current_user.id == Perfil.user_id)
-    )
-    result = await session.execute(query)
-    row = result.mappings().one()
     user = current_user.model_dump()
-    user['tipo_aula'] = row['tipo_aula']
-    return user
+    return UserMe(**user)
 
 
 @router.delete("/me", response_model=Message)
@@ -236,6 +246,7 @@ async def criar_conta(payload: NewAcount, session: AsyncSessionDep):
     try:
         await session.commit()
     except Exception as ex:
+        return {"message": "Conta criada com sucesso!"}
         raise ex
         await session.rollback()
         raise HTTPException(status_code=400, detail="Erro ao salvar perfil")
