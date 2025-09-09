@@ -121,14 +121,8 @@ async def motoritas(*, session: AsyncSessionDep, localizacao: Localizacao, curre
     Update own user.
     """
     retono = [
-        {
-            'tipo_veiculo': 1,
-            'qtd': 5,
-        },
-        {
-            'tipo_veiculo': 2,
-            'qtd': 3,
-        },
+        {'tipo_veiculo': 1, 'qtd': 5, 'valor': 20.00},
+        {'tipo_veiculo': 2, 'qtd': 3, 'valor': 30.00},
     ]
     return retono
 

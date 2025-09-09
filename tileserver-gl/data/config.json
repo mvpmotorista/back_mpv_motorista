@@ -5,10 +5,10 @@
     }
   },
    "styles": {
-    "padrao": { "style": "style.json" }
+    "basic-preview": { "style": "style.json" }
   },
   "data": {
-    "mapa": {
+    "openmaptiles": {
       "mbtiles": "sul.mbtiles"
     }
   }
