@@ -97,6 +97,13 @@ class PatchUser(BaseModel):
         }
 
 
+class Localizacao(BaseModel):
+    lat_ini: float
+    lat_fim: float
+    lon_ini: float
+    lon_fim: float
+
+
 @router.patch("/me")
 async def update_user_me(*, session: AsyncSessionDep, user_in: PatchUser, current_user: CurrentUser) -> Any:
     """
@@ -106,6 +113,24 @@ async def update_user_me(*, session: AsyncSessionDep, user_in: PatchUser, curren
         setattr(current_user, key, value)
     await session.commit()
     return {}
+
+
+@router.get("/me")
+async def motoritas(*, session: AsyncSessionDep, localizacao: Localizacao, current_user: CurrentUser) -> Any:
+    """
+    Update own user.
+    """
+    retono = [
+        {
+            'tipo_veiculo': 1,
+            'qtd': 5,
+        },
+        {
+            'tipo_veiculo': 2,
+            'qtd': 3,
+        },
+    ]
+    return retono
 
 
 @router.patch("/me/password", response_model=Message)

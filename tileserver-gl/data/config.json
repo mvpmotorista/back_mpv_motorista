@@ -1,0 +1,15 @@
+{
+  "options": {
+    "paths": {
+      "root": "/data"
+    }
+  },
+   "styles": {
+    "padrao": { "style": "style.json" }
+  },
+  "data": {
+    "mapa": {
+      "mbtiles": "sul.mbtiles"
+    }
+  }
+}

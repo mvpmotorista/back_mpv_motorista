@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  tileserver:
+    image: maptiler/tileserver-gl
+    container_name: tileserver-gl
+    ports:
+      - "8080:8080"   # host:container
+    volumes:
+      - ./data:/data
+    command: ["--mbtiles", "/data/sul.mbtiles"]
