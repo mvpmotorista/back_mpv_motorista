@@ -102,6 +102,9 @@ class Localizacao(BaseModel):
     lat_fim: float
     lon_ini: float
     lon_fim: float
+    endereco_inicio: str | None = None
+    endereco_fim: str | None = None
+    distancia: float | None = None
 
 
 @router.patch("/me")
@@ -115,14 +118,37 @@ async def update_user_me(*, session: AsyncSessionDep, user_in: PatchUser, curren
     return {}
 
 
-@router.get("/me")
+def calcular_preco(localizacao: Localizacao,categoria,preco_base,) -> float:
+    return 10.5
+
+
+@router.post("/cotar-corrida")
 async def motoritas(*, session: AsyncSessionDep, localizacao: Localizacao, current_user: CurrentUser) -> Any:
     """
     Update own user.
     """
+    'confort'
+    'economico'
+    'xl'
     retono = [
-        {'tipo_veiculo': 1, 'qtd': 5, 'valor': 20.00},
-        {'tipo_veiculo': 2, 'qtd': 3, 'valor': 30.00},
+        {
+            'titulo': 'Corrida Confort',
+            'tipo_veiculo': 'confort',
+            'subtitulo': 'nao sei',
+            'valor': 10.5,
+        },
+        {
+            'titulo': 'Corrida economico',
+            'tipo_veiculo': 'economico',
+            'subtitulo': 'nao sei',
+            'valor': 10.5,
+        },
+        {
+            'titulo': 'Corrida xl',
+            'tipo_veiculo': 'xl',
+            'subtitulo': 'nao sei',
+            'valor': 10.5,
+        }
     ]
     return retono
 

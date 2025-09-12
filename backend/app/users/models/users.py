@@ -68,6 +68,10 @@ class User(UserBase, table=True):
     genero: str | None = Field(default=None, max_length=10)
     telefone: str | None = Field(default=None, max_length=30)
     data_nascimento: date | None = Field(default=None)
+    current_lat: float | None = Field(default=None)
+    current_lon: float | None = Field(default=None)
+    is_available: bool|None = Field(default=True)
+    role: str | None = Field(default="user", max_length=255)
 
 
 # Properties to return via API, id is always required

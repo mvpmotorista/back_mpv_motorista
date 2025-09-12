@@ -27,6 +27,7 @@ from sqlmodel import SQLModel
 # from app.models. import User  # noqa
 from app.core.config import settings  # noqa
 from app.core.models.core import *  # noqa
+from app.core.models.driver import *  # noqa
 from app.users.models.users import *  # noqa
 from app.users.models.perfis import *  # noqa
 
