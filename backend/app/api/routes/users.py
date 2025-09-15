@@ -132,21 +132,21 @@ async def motoritas(*, session: AsyncSessionDep, localizacao: Localizacao, curre
     'xl'
     retono = [
         {
-            'titulo': 'Corrida Confort',
+            'titulo': 'Confort',
             'tipo_veiculo': 'confort',
-            'subtitulo': 'nao sei',
+            'subtitulo': '...',
             'valor': 10.5,
         },
         {
-            'titulo': 'Corrida economico',
+            'titulo': 'Econômico',
             'tipo_veiculo': 'economico',
-            'subtitulo': 'nao sei',
+            'subtitulo': '...',
             'valor': 10.5,
         },
         {
-            'titulo': 'Corrida xl',
+            'titulo': 'Xl',
             'tipo_veiculo': 'xl',
-            'subtitulo': 'nao sei',
+            'subtitulo': '...',
             'valor': 10.5,
         }
     ]
