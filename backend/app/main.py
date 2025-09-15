@@ -42,4 +42,11 @@ if settings.all_cors_origins:
 
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+# Rota para arquivos estáticos (fora do versionamento da API)
+from app.api.routes.static import router as static_router
+
+# Mount para arquivos estáticos
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 add_event_listener()

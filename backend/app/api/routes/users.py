@@ -1,10 +1,10 @@
 import asyncio
-from datetime import datetime, date
 import uuid
+from datetime import date, datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
 import jwt
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field, model_serializer
 from sqlmodel import col, delete, func, select
 
@@ -16,7 +16,6 @@ from app.api.deps import (
 )
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
-
 from app.users.models.perfis import Perfil
 from app.users.models.users import (
     Message,

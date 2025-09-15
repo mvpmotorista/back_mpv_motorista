@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     def all_cors_origins(self) -> list[str]:
         return [str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS] + [self.FRONTEND_HOST]
 
-    PROJECT_NAME: str = 'Abrasileirar'
+    PROJECT_NAME: str = 'UBER CLONE'
     SENTRY_DSN: HttpUrl | None = None
     PROJETO_DSN: HttpUrl | None = None
     POSTGRES_SERVER: str

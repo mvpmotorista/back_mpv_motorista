@@ -69,7 +69,7 @@ def calcular_multiplicador(
 
 
 def calcular_preco(
-    tipo_corrida: Literal["UberX", "Comfort", "Black", "Moto"],
+    regra,
     distancia_km: float,
     duracao_min: float,
     passageiros_ativos: int,
@@ -82,7 +82,6 @@ def calcular_preco(
     desconto: float = 0.0,
 ) -> float:
     """Calcula o preço da corrida no estilo Uber considerando todos os fatores."""
-    regras = REGRAS_PRECO[tipo_corrida]
 
     # Multiplicador dinâmico
     multiplicador = calcular_multiplicador(
@@ -91,9 +90,9 @@ def calcular_preco(
 
     # Preço base
     preco = (
-        regras["tarifa_base"]
-        + (distancia_km * (regras["custo_por_km"] + taxa_combustivel_por_km))
-        + (duracao_min * regras["custo_por_minuto"])
+        regra["tarifa_base"]
+        + (distancia_km * (regra["custo_por_km"] + taxa_combustivel_por_km))
+        + (duracao_min * regra["custo_por_minuto"])
     )
 
     # Aplica preço dinâmico
@@ -107,17 +106,10 @@ def calcular_preco(
         preco += sum(pedagios)
 
     # Garante tarifa mínima
-    preco = max(preco, regras["tarifa_minima"])
+    preco = max(preco, regra["tarifa_minima"])
 
     # Aplica desconto
     preco -= desconto
     preco = max(preco, 0)
 
     return round(preco, 2)
-
-
-# Exemplos de uso
-print("UberX baixa demanda:", calcular_preco("UberX", 10, 15, 50, 100, 2, recusas_motoristas=0))
-print("Comfort alta demanda:", calcular_preco("Comfort", 8, 20, 200, 100, 12, recusas_motoristas=6))
-print("Black com pedágio:", calcular_preco("Black", 25, 40, 300, 100, 8, recusas_motoristas=3, pedagios=[5.0, 7.5]))
-print("Moto com desconto:", calcular_preco("Moto", 5, 10, 120, 60, 5, recusas_motoristas=1, desconto=4.0))

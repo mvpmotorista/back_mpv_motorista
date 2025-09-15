@@ -1,4 +1,5 @@
 from typing import Any
+import uuid
 
 from fastapi import APIRouter
 from geoalchemy2 import Geography, Geometry
@@ -10,6 +11,60 @@ from app.services.corrida import calcular_preco
 from app.users.models.users import User
 
 router = APIRouter(prefix="/corrida", tags=["corrida"])
+
+
+fake_categorias = [
+    {
+        'id': uuid.UUID('22f5cb69-d97b-4753-a148-398a387b3ceb'),
+        "tarifa_base": 4.0,
+        "custo_por_km": 1.8,
+        "custo_por_minuto": 0.4,
+        "tarifa_minima": 8.0,
+        'titulo': 'Confort',
+        'subtitulo': '...',
+        'icone': 'confort.json',
+    },
+    {
+        'id': uuid.UUID('716f1605-2be5-47f3-8e1f-6c7bc76736f2'),
+        "tarifa_base": 4.0,
+        "custo_por_km": 1.8,
+        "custo_por_minuto": 0.4,
+        "tarifa_minima": 8.0,
+        'titulo': 'Confort',
+        'subtitulo': '...',
+        'icone': 'woman.json',
+    },
+    {
+        'id': uuid.UUID('a59af7b3-2895-46e1-bf44-86b8d171613b'),
+        "tarifa_base": 6.0,
+        "custo_por_km": 2.2,
+        "custo_por_minuto": 0.5,
+        "tarifa_minima": 12.0,
+        'titulo': 'XL',
+        'subtitulo': '...',
+        'icone': 'xl.json',
+    },
+    {
+        'id': uuid.UUID('2b05c586-203e-45cd-8cf0-ce9cecd153e5'),
+        "tarifa_base": 10.0,
+        "custo_por_km": 3.5,
+        "custo_por_minuto": 0.8,
+        "tarifa_minima": 20.0,
+        'titulo': 'Economico',
+        'subtitulo': '...',
+        'icone': 'economico.json',
+    },
+    {
+        'subtitulo': '...',
+        'id': uuid.UUID('2b05c586-203e-45cd-8cf0-ce9cecd153e5'),
+        "tarifa_base": 2.5,
+        "custo_por_km": 1.0,
+        "custo_por_minuto": 0.25,
+        "tarifa_minima": 5.0,
+        'titulo': 'MOTO',
+        'icone': '',
+    },
+]
 
 
 class Localizacao(BaseModel):
@@ -55,42 +110,10 @@ async def cotar_corrida(
     tempo_espera_min = 5.0  # Valor padrão
 
     # Calcular preços para diferentes tipos de veículo
-    preco_confort = calcular_preco(
-        "Comfort", distancia_km, duracao_min, passageiros_ativos, motoristas_disponiveis, tempo_espera_min
-    )
-    preco_economico = calcular_preco(
-        "UberX", distancia_km, duracao_min, passageiros_ativos, motoristas_disponiveis, tempo_espera_min
-    )
-    preco_xl = calcular_preco(
-        "Black", distancia_km, duracao_min, passageiros_ativos, motoristas_disponiveis, tempo_espera_min
-    )
+    for x in fake_categorias:
+        x['icone'] = 'http://localhost:8000/static/' + x['icone']
+        x['preco'] = calcular_preco(
+            x, distancia_km, duracao_min, passageiros_ativos, motoristas_disponiveis, tempo_espera_min
+        )
 
-    retorno = [
-        {
-            'titulo': 'Corrida Confort',
-            'tipo_veiculo': 'confort',
-            'subtitulo': 'Veículo confortável para sua viagem',
-            'valor': preco_confort,
-            'motoristas_disponiveis': len([m for m in results if m.veiculo_id is not None]),
-        },
-        {
-            'titulo': 'Corrida Econômico',
-            'tipo_veiculo': 'economico',
-            'subtitulo': 'Opção mais econômica',
-            'valor': preco_economico,
-            'motoristas_disponiveis': len([m for m in results if m.veiculo_id is not None]),
-        },
-        {
-            'titulo': 'Corrida XL',
-            'tipo_veiculo': 'xl',
-            'subtitulo': 'Veículo maior para grupos',
-            'valor': preco_xl,
-            'motoristas_disponiveis': len([m for m in results if m.veiculo_id is not None]),
-        },
-    ]
-
-    return {
-        'opcoes_corrida': retorno,
-        'total_motoristas_proximos': len(results),
-        'coordenadas_busca': {'lat': localizacao.lat_ini, 'lon': localizacao.lon_ini},
-    }
+    return fake_categorias
