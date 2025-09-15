@@ -41,7 +41,7 @@ async def cotar_corrida(
         func.ST_DWithin(
             cast(User.current_location, Geography(geometry_type="POINT", srid=4326)),
             cast(ref_point, Geography(geometry_type="POINT", srid=4326)),
-            1000,  # 10 km em metros
+            10000,  # 10 km em metros
         ),
     )
 
