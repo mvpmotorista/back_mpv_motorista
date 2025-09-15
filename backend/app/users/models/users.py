@@ -1,6 +1,7 @@
 from datetime import date
 import uuid
 
+from geoalchemy2 import Geometry
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -70,8 +71,10 @@ class User(UserBase, table=True):
     data_nascimento: date | None = Field(default=None)
     current_lat: float | None = Field(default=None)
     current_lon: float | None = Field(default=None)
-    is_available: bool|None = Field(default=True)
+    is_available: bool | None = Field(default=True)
     role: str | None = Field(default="user", max_length=255)
+    current_location: str | None = Field(sa_column=Field(sa_column=Geometry(geometry_type="POINT", srid=4326)))
+    veiculo_id: int | None = Field(default=None, foreign_key="veiculos_motoristas.id")
 
 
 # Properties to return via API, id is always required

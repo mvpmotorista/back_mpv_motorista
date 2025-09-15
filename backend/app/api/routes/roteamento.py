@@ -1,89 +1,96 @@
-from fastapi import APIRouter, HTTPException, status, Path
-from pydantic import BaseModel, Field
-from datetime import datetime
-from typing import Optional
-from typing import List
-from uuid import uuid4
-from fastapi import Body
+from typing import Any
 
-# /home/hian/back_mpv_motorista/backend/app/api/routes/roteamento.py
+from fastapi import APIRouter
+from geoalchemy2 import Geography, Geometry
+from pydantic import BaseModel
+from sqlmodel import func, select, cast
 
-router = APIRouter(prefix="/motoristas", tags=["roteamento"])
+from app.api.deps import AsyncSessionDep
+from app.services.corrida import calcular_preco
+from app.users.models.users import User
 
-
-class Geolocalizacao(BaseModel):
-    latitude: float = Field(..., ge=-90, le=90, description="Latitude em graus")
-    longitude: float = Field(..., ge=-180, le=180, description="Longitude em graus")
-    timestamp: Optional[datetime] = Field(None, description="Timestamp ISO8601")
-    velocidade: Optional[float] = Field(None, ge=0, description="Velocidade em m/s")
-    heading: Optional[float] = Field(None, ge=0, le=360, description="Direção em graus")
+router = APIRouter(prefix="/corrida", tags=["corrida"])
 
 
-@router.post(
-    "/{motorista_id}/localizacao",
-    status_code=status.HTTP_201_CREATED,
-    summary="Recebe a geolocalização de um motorista",
-)
-async def receber_localizacao(
-    motorista_id: int = Path(..., description="ID do motorista"),
-    geo: Geolocalizacao = ...,
-):
+class Localizacao(BaseModel):
+    lat_ini: float
+    lat_fim: float
+    lon_ini: float
+    lon_fim: float
+    endereco_inicio: str | None = None
+    endereco_fim: str | None = None
+    distancia: float | None = None
+    duracao: float | None = None
+
+
+@router.post("/cotar")
+async def cotar_corrida(
+    *,
+    session: AsyncSessionDep,
+    localizacao: Localizacao,
+) -> Any:
     """
-    Endpoint que recebe a posição do motorista.
-    Integre aqui com sua camada de persistência ou serviço de roteamento.
+    Busca motoristas próximos usando coordenadas geográficas.
     """
-    try:
-        registro = {
-            "motorista_id": motorista_id,
-            "latitude": geo.latitude,
-            "longitude": geo.longitude,
-            "timestamp": geo.timestamp or datetime.utcnow(),
-            "velocidade": geo.velocidade,
-            "heading": geo.heading,
-        }
+    # Criar ponto de referência a partir das coordenadas de início
+    ref_point = func.ST_SetSRID(func.ST_MakePoint(localizacao.lat_ini, localizacao.lon_ini), 4326)
 
-        # TODO: salvar registro no banco ou enviar para serviço de telemetria
-        # await salvar_localizacao_no_db(registro)
+    # Query para buscar motoristas próximos (dentro de 10km)
+    statement = select(User.id).where(
+        User.is_active,  # Apenas usuários ativos
+        func.ST_DWithin(
+            cast(User.current_location, Geography(geometry_type="POINT", srid=4326)),
+            cast(ref_point, Geography(geometry_type="POINT", srid=4326)),
+            1000,  # 10 km em metros
+        ),
+    )
 
-        return {"status": "ok", "data": registro}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Erro ao processar localização")
+    results = (await session.execute(statement)).all()
 
+    # Parâmetros para cálculo de preço
+    distancia_km = localizacao.distancia or 0
+    duracao_min = localizacao.duracao or 0
+    passageiros_ativos = 50  # Valor padrão
+    motoristas_disponiveis = len(results)
+    tempo_espera_min = 5.0  # Valor padrão
 
-class SolicitacaoCorrida(BaseModel):
-    pontos: List[Geolocalizacao] = Field(..., min_items=2, description="Lista de pontos de parada (mínimo 2)")
+    # Calcular preços para diferentes tipos de veículo
+    preco_confort = calcular_preco(
+        "Comfort", distancia_km, duracao_min, passageiros_ativos, motoristas_disponiveis, tempo_espera_min
+    )
+    preco_economico = calcular_preco(
+        "UberX", distancia_km, duracao_min, passageiros_ativos, motoristas_disponiveis, tempo_espera_min
+    )
+    preco_xl = calcular_preco(
+        "Black", distancia_km, duracao_min, passageiros_ativos, motoristas_disponiveis, tempo_espera_min
+    )
 
+    retorno = [
+        {
+            'titulo': 'Corrida Confort',
+            'tipo_veiculo': 'confort',
+            'subtitulo': 'Veículo confortável para sua viagem',
+            'valor': preco_confort,
+            'motoristas_disponiveis': len([m for m in results if m.veiculo_id is not None]),
+        },
+        {
+            'titulo': 'Corrida Econômico',
+            'tipo_veiculo': 'economico',
+            'subtitulo': 'Opção mais econômica',
+            'valor': preco_economico,
+            'motoristas_disponiveis': len([m for m in results if m.veiculo_id is not None]),
+        },
+        {
+            'titulo': 'Corrida XL',
+            'tipo_veiculo': 'xl',
+            'subtitulo': 'Veículo maior para grupos',
+            'valor': preco_xl,
+            'motoristas_disponiveis': len([m for m in results if m.veiculo_id is not None]),
+        },
+    ]
 
-@router.post(
-    "/{passageiro_id}/corrida",
-    status_code=status.HTTP_201_CREATED,
-    summary="Solicita uma corrida para um passageiro com 2 ou mais pontos de parada",
-)
-async def solicitar_corrida(
-    passageiro_id: int = Path(..., description="ID do passageiro"),
-    solicitacao: SolicitacaoCorrida = Body(...),
-):
-    try:
-        if len(solicitacao.pontos) < 2:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Deve fornecer pelo menos 2 pontos de parada",
-            )
-
-        corrida_id = str(uuid4())
-        corrida = {
-            "id": corrida_id,
-            "passageiro_id": passageiro_id,
-            "pontos": [p.dict() for p in solicitacao.pontos],
-            "requested_at": datetime.utcnow(),
-            "status": "pendente",
-        }
-
-        # TODO: persistir corrida no banco ou enviar para serviço de despacho
-        # await criar_corrida_no_sistema(corrida)
-
-        return {"status": "ok", "data": corrida}
-    except HTTPException:
-        raise
-    except Exception:
-        raise HTTPException(status_code=500, detail="Erro ao processar solicitação de corrida")
+    return {
+        'opcoes_corrida': retorno,
+        'total_motoristas_proximos': len(results),
+        'coordenadas_busca': {'lat': localizacao.lat_ini, 'lon': localizacao.lon_ini},
+    }
