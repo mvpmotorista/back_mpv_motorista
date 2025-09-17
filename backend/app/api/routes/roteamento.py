@@ -6,7 +6,7 @@ from geoalchemy2 import Geography, Geometry
 from pydantic import BaseModel
 from sqlmodel import func, select, cast
 
-from app.api.deps import AsyncSessionDep
+from app.api.deps import AsyncSessionDep, CurrentUser
 from app.services.corrida import calcular_preco
 from app.users.models.users import User
 
@@ -30,7 +30,7 @@ fake_categorias = [
         "custo_por_km": 1.8,
         "custo_por_minuto": 0.4,
         "tarifa_minima": 8.0,
-        'titulo': 'Confort',
+        'titulo': 'Confort M',
         'subtitulo': '...',
         'icone': 'woman.json',
     },
@@ -62,7 +62,7 @@ fake_categorias = [
         "custo_por_minuto": 0.25,
         "tarifa_minima": 5.0,
         'titulo': 'MOTO',
-        'icone': '',
+        'icone': 'moto.json',
     },
 ]
 
@@ -111,9 +111,92 @@ async def cotar_corrida(
 
     # Calcular preços para diferentes tipos de veículo
     for x in fake_categorias:
-        x['icone'] = 'http://localhost:8000/static/' + x['icone']
+        # x['icone'] = /x['icone']
         x['preco'] = calcular_preco(
-            x, distancia_km, duracao_min, passageiros_ativos, motoristas_disponiveis, tempo_espera_min
+            x,
+            distancia_km,
+            duracao_min,
+            passageiros_ativos,
+            motoristas_disponiveis,
+            tempo_espera_min,
+            taxa_combustivel_por_km=6.19,
         )
 
     return fake_categorias
+
+
+class ConfirmarCorrida(BaseModel):
+    lat_ini: float
+    lat_fim: float
+    lon_ini: float
+    lon_fim: float
+    endereco_inicio: str | None = None
+    endereco_fim: str | None = None
+    distancia: float | None = None
+    duracao: float | None = None
+    veiculo_id: uuid.UUID
+
+
+# @router.post("/reservar-corrida")
+# async def reservar_corrida(
+#     *,
+#     session: AsyncSessionDep,
+#     localizacao: Localizacao,
+# ) -> Any:
+
+#     ref_point = func.ST_SetSRID(func.ST_MakePoint(localizacao.lat_ini, localizacao.lon_ini), 4326)
+#     # Query para buscar motoristas próximos (dentro de 10km)
+#     statement = select(User.id).where(
+#         User.is_active,  # Apenas usuários ativos
+#         func.ST_DWithin(
+#             cast(User.current_location, Geography(geometry_type="POINT", srid=4326)),
+#             cast(ref_point, Geography(geometry_type="POINT", srid=4326)),
+#             10000,  # 10 km em metros
+#         ),
+#     )
+#     return {}
+
+
+class Reserva(BaseModel):
+    id: uuid.UUID
+
+
+@router.post("/reservar")
+async def reservar_corrida(*, session: AsyncSessionDep, current_user: CurrentUser, dados: Reserva) -> Any:
+    current_user.status_corrida = 'aguardando'
+    await session.commit()
+    return {}
+
+
+@router.post("/cancelar")
+async def cancelar_corrida(*, session: AsyncSessionDep, current_user: CurrentUser) -> Any:
+    current_user.status_corrida = 'cancelar'
+    await session.commit()
+    return {}
+
+
+@router.get("/consultar")
+async def consultar_corrida(*, session: AsyncSessionDep, current_user: CurrentUser) -> Any:
+    # current_user.status_corrida = 'aguardando'
+    retorno_exemplo = {
+        'foto_motorista': 'url',
+        'nome_motorista': 'Fulano de Tal',
+        'placa_veiculo': 'ABC-1234',
+        'modelo_veiculo': 'Toyota Corolla',
+        'tempo_chegada_min': 5,
+        'cor_veiculo': 'Prata',
+    }
+    return retorno_exemplo
+
+@router.post("/finalizar")
+async def finalizar_corrida(*, session: AsyncSessionDep, current_user: CurrentUser) -> Any:
+    # current_user.status_corrida = 'aguardando'
+    retorno_exemplo = {
+        'foto_motorista': 'url',
+        'nome_motorista': 'Fulano de Tal',
+        'placa_veiculo': 'ABC-1234',
+        'modelo_veiculo': 'Toyota Corolla',
+        'tempo_chegada_min': 5,
+        'cor_veiculo': 'Prata',
+    }
+    return retorno_exemplo

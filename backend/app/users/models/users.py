@@ -74,7 +74,10 @@ class User(UserBase, table=True):
     is_available: bool | None = Field(default=True)
     role: str | None = Field(default="user", max_length=255)
     current_location: str | None = Field(sa_column=Field(sa_column=Geometry(geometry_type="POINT", srid=4326)))
-    veiculo_id: int | None = Field(default=None, foreign_key="veiculos_motoristas.id")
+    # veiculo_id: int | None = Field(default=None, foreign_key="veiculos_motoristas.id")
+    status_corrida: str | None = Field(default=None, max_length=50)
+    # veiculo_escolhido: str | None = Field(default=None, max_length=50)
+    # corrida_config: str | None = Field(default=None, max_length=50)
 
 
 # Properties to return via API, id is always required
