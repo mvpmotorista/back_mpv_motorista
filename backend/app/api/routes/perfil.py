@@ -10,7 +10,6 @@ from sqlalchemy.orm import aliased
 
 from app.api.deps import AsyncSessionDep, CurrentUser, ResourceAccess
 from app.enums.eumeradores import StatusEnum, TipoPerfilEnum
-from app.users.models.perfis import Perfil
 from app.users.models.users import User
 
 router = APIRouter(prefix="/perfil", tags=["perfil"])

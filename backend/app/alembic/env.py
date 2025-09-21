@@ -1,7 +1,14 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
+print(
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+        )
+    )
+)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from logging.config import fileConfig
 
@@ -27,10 +34,10 @@ from sqlmodel import SQLModel
 # from app.models. import User  # noqa
 from app.core.config import settings  # noqa
 from app.core.models.core import *  # noqa
-from app.core.models.driver import *  # noqa
-from app.core.models.corrida import *  # noqa
 from app.users.models.users import *  # noqa
-from app.users.models.perfis import *  # noqa
+# from app.core.models.driver import *  # noqa
+# from app.core.models.corrida import *  # noqa
+# from app.users.models.perfis import *  # noqa
 
 target_metadata = SQLModel.metadata
 

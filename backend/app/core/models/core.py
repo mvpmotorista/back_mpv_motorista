@@ -17,19 +17,8 @@ class Log(SQLModel):
     __table_args__ = {"schema": None}
 
 
-class Schemas(Log, table=True):
-    __tablename__: str = "schemas"  # type: ignore
-    __table_args__ = {"schema": 'public'}
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    nome: str = Field(max_length=100, nullable=False)
-    teste: str = Field(max_length=100, nullable=False)
 
 
-class Status(Log, table=True):
-    __tablename__: str = "status"  # type: ignore
-    id: str | None = Field(default=None, primary_key=True)
-    nome: str | None
-    # perfis: list["Perfil"] = Relationship(back_populates="status")
 
 
 class Municipio(Log, table=True):

@@ -5,6 +5,8 @@ from geoalchemy2 import Geometry
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
 
+from app.core.models.core import Log
+
 
 # Generic message
 class Message(SQLModel):
@@ -63,7 +65,7 @@ class UpdatePassword(SQLModel):
 
 
 # Database model, database table inferred from class name
-class User(UserBase, table=True):
+class User(Log, UserBase, table=True):
     id: uuid.UUID = Field(primary_key=True)
     hashed_password: str
     genero: str | None = Field(default=None, max_length=10)
@@ -88,3 +90,15 @@ class UserPublic(UserBase):
 class UsersPublic(SQLModel):
     data: list[UserPublic]
     count: int
+
+
+class Endereco(Log, table=True):
+    __tablename__: str = "enderecos"  # type: ignore
+    id: int = Field(primary_key=True)
+    logradouro: str | None = Field(default=None, max_length=100)
+    numero: str | None = Field(default=None, max_length=10)
+    complemento: str | None = Field(default=None, max_length=50)
+    bairro: str | None = Field(default=None, max_length=50)
+    cep: str | None = Field(default=None, max_length=10)
+    cidade: str | None = Field(default=None, max_length=50)
+    estado: str | None = Field(default=None, max_length=2)
