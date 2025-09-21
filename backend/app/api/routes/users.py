@@ -23,7 +23,6 @@ from app.users.models.users import (
     UserCreate,
     UserPublic,
     UserRegister,
-    UsersPublic,
     UserUpdate,
     UserUpdateMe,
 )
@@ -34,24 +33,6 @@ from app.utils import generate_new_account_email, send_email
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.get(
-    "/",
-    dependencies=[Depends(get_current_active_superuser)],
-    response_model=UsersPublic,
-)
-async def read_users(session: AsyncSessionDep, skip: int = 0, limit: int = 100) -> Any:
-    """
-    Retrieve users.
-    """
-
-    count_statement = select(func.count()).select_from(User)
-    count_result = await session.execute(count_statement)
-
-    statement = select(User).offset(skip).limit(limit)
-    users_result = await session.execute(statement)
-    total_count = count_result.scalar_one()
-    users_list = users_result.scalars().all()
-    return UsersPublic(data=users_list, count=total_count)
 
 
 @router.post("/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic)

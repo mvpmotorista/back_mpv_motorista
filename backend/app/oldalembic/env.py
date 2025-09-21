@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 
 print(
     os.path.abspath(
@@ -12,10 +12,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
 
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, inspect, text
-from sqlalchemy import pool
-
 from alembic import context
+from sqlalchemy import engine_from_config, pool, text
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -23,26 +21,26 @@ config = context.config
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+fileConfig(config.config_file_name)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
-from app.database import Base
+# target_metadata = mymodel.Base.metadata
+# target_metadata = None
+
+from sqlmodel import SQLModel
 
 # from app.models. import User  # noqa
 from app.core.config import settings  # noqa
-
-# from app.core.models.core import *  # noqa
+from app.core.models.core import *  # noqa
 from app.users.models.users import *  # noqa
-# from app.core.models.driver import *  # noqa
+from app.core.models.driver import *  # noqa
+# from app.core.models.corrida import *  # noqa
+# from app.users.models.perfis import *  # noqa
 
-target_metadata = Base.metadata
-# breakpoint()
-print("target_metadata", target_metadata)
-for table_name, table_obj in target_metadata.tables.items():
-    print(f"Table: {table_name}, Schema: {table_obj.schema}")
+target_metadata = SQLModel.metadata
+
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
@@ -53,7 +51,7 @@ def get_url():
     return str(settings.SQLALCHEMY_DATABASE_URI)
 
 
-def run_migrations_offline() -> None:
+def run_migrations_offline():
     """Run migrations in 'offline' mode.
 
     This configures the context with just a URL
@@ -65,13 +63,12 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-
     url = get_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
+        compare_type=True,
     )
 
     with context.begin_transaction():
@@ -79,32 +76,7 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    """Run migrations in 'online' mode.
-
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
-
-    """
-
-    def include_name(name, type_, parent_names):
-        if type_ == "index":
-            # this **will* include the default schema
-            return True
-        if type_ == "table":
-            # this **will* include the default schema
-            return name not in ["spatial_ref_sys","alembic_version"]
-        if type_ == "schema":
-            # this **will* include the default schema
-            return name in ["public", None]
-        else:
-            return True
-    def include_object(object, name, type_, reflected, compare_to):
-        print(object)
-        if type_ == "index" and name == "idx_users_current_location":
-            return False
-        return True
-
-    print(config.get_section(config.config_ini_section, {}))
+    """Run migrations in 'online' mode."""
     configuration = config.get_section(config.config_ini_section)
     configuration["sqlalchemy.url"] = get_url()
     connectable = engine_from_config(
@@ -112,33 +84,56 @@ def run_migrations_online() -> None:
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
+    # ...
+
+    def include_name(name, type_, parent_names):
+        """
+        Função de callback que decide quais objetos incluir na migração.
+        Ignora todos os schemas que não sejam 'public'.
+        """
+        if type_ == "schema":
+            return name == "public" or name is None
+        return True
 
     with connectable.connect() as connection:
-        connection.execute(text('set search_path to "public"'))
+        connection.execute(text('set SESSION search_path to "public"'  ))
+            # in SQLAlchemy v2+ the search path change needs to be committed
         connection.commit()
+        connection.dialect.default_schema_name = 'public'
+
         context.configure(
             connection=connection,
-            target_metadata=target_metadata,
-            # include_schemas=True,
-            include_name=include_name,
-            version_table_schema='public',
-            include_object=include_object
             # compare_type=True,
+            target_metadata=target_metadata,
+            version_table_schema='public',
+            # Configurações para incluir schemas
+            # include_schemas=True,
+            # Usa a função de filtro para incluir apenas o schema 'public'
+            include_name=include_name,
+            include_object=validate_tenant('public'),
         )
-        connection.dialect.default_schema_name = 'public'
-        inspector = inspect(connectable)
-        print("Schemas visíveis pelo inspector:", inspector.get_schema_names())
-        
+        # with connectable.connect() as connection:
+        #     context.configure(
+        #         connection=connection, target_metadata=target_metadata, compare_type=True
+        #     )
+
 
         with context.begin_transaction():
-            result = connection.execute(text("SELECT current_schema();"))
-            print('result', result.scalar())
-            result = connection.execute(text("SELECT version_num FROM alembic_version;"))
-            current_version = result.scalar()
-            print(f"Current Alembic stamp in DB: {current_version}")
-
-            # breakpoint()
             context.run_migrations()
+
+
+def validate_tenant(current_tenant):
+    print('validar')
+
+    def inner(object, name, type_, reflected, compare_to):
+        # breakpoint()
+        if type_ != 'table':
+            return True
+        print(1,object.schema, current_tenant)
+        result = object.schema == current_tenant
+        return result
+
+    return inner
 
 
 if context.is_offline_mode():
