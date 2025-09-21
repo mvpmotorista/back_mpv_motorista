@@ -1,7 +1,8 @@
 from datetime import datetime
-from sqlalchemy import Column, Boolean, Integer, DateTime
+from sqlalchemy import Column, Boolean, ForeignKey, Integer, DateTime, String
 from app.datetime_utils import get_utc_now
 from app.database import Base  # Importando a base declarativa do SQLAlchemy
+
 
 class Log(Base):
     __abstract__ = True  # Classe base, não cria tabela própria
@@ -14,32 +15,6 @@ class Log(Base):
     created_by = Column(Integer, nullable=True)
     updated_by = Column(Integer, nullable=True)
     deleted_by = Column(Integer, nullable=True)
-
-
-
-# class Municipio(Log, table=True):
-#     __tablename__: str = "municipios"  # type: ignore
-#     id: int = Field(primary_key=True, sa_column_kwargs={'autoincrement': False})
-#     nome: str
-#     uf: str = Field(max_length=2)
-
-
-# class Feriado(Log, table=True):
-#     __tablename__: str = "feriados"  # type: ignore
-#     id: int = Field(default=None, primary_key=True)
-#     data: date = Field(nullable=False)
-#     abrangencia: str = Field(max_length=50)
-#     municipio_id: int | None = Field(default=None, foreign_key="municipios.id")
-#     descricao: str | None = Field(default=None, max_length=500)
-#     uf: str | None = Field(default=None, max_length=2)
-
-
-# class LogAtividade(Log, table=True):
-#     __tablename__: str = "log_atividade"  # type: ignore
-#     id: int | None = Field(default=None, primary_key=True)
-#     # perfil_id: int = Field(foreign_key="perfis.id", nullable=False)
-#     acao: str = Field(nullable=False, max_length=255)
-#     detalhe: str = Field(nullable=False, max_length=500)
 
 
 # def soft_delete_values():
@@ -112,14 +87,15 @@ class Log(Base):
 #     categoria_interna: str | None = Field(default=None, max_length=50)
 
 
-# class VeiculoMotorista(Log, table=True):
-#     __tablename__: str = "veiculos_motoristas"
-#     __table_args__ = {"schema": "public"}
-#       # type: ignore
-#     id: int = Field(primary_key=True)
-#     motorista_id: int = Field(foreign_key="user.id", primary_key=True)
-#     crlv: str | None = Field(default=None, max_length=1000)
-#     # crlv_arquivo: str | None = Field(default=None, max_length=1000)
-#     # foto_carro: str | None = Field(default=None, max_length=100)
-#     placa: str | None = Field(default=None, max_length=10)
-#     cor: str | None = Field(default=None, max_length=20)
+class VeiculoMotorista(Log):
+    __tablename__ = "veiculos_motoristas"
+    __table_args__ = {"schema": None}
+
+    id = Column(Integer, primary_key=True, index=True)
+    motorista_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+
+    crlv = Column(String(1000), nullable=True)
+    placa = Column(String(10), nullable=True)
+    cor = Column(String(20), nullable=True)
+    crlv_arquivo = Column(String(1000), nullable=True)
+    foto_carro = Column(String(100), nullable=True)

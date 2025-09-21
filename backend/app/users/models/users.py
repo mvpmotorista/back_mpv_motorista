@@ -101,6 +101,10 @@ class User(Log, Base):
     cpf = Column(String(14), nullable=True)
     cnh = Column(String(20), nullable=True)
     cnh_arquivo = Column(String(1000), nullable=True)
+    registry_completed = Column(Boolean, default=False, nullable=True)
+    registry_approved = Column(Boolean, default=False, nullable=True)
+    
+    # Endereço
 
     logradouro = Column(String(100), nullable=True)
     numero = Column(String(10), nullable=True)

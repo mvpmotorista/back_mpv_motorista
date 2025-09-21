@@ -49,4 +49,4 @@ from app.api.routes.static import router as static_router
 # Mount para arquivos estáticos
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-add_event_listener()
+# add_event_listener()

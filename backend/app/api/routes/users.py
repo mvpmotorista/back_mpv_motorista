@@ -97,39 +97,8 @@ async def update_user_me(*, session: AsyncSessionDep, user_in: PatchUser, curren
     return {}
 
 
-def calcular_preco(localizacao: Localizacao,categoria,preco_base,) -> float:
-    return 10.5
 
 
-@router.post("/cotar-corrida")
-async def motoritas(*, session: AsyncSessionDep, localizacao: Localizacao, current_user: CurrentUser) -> Any:
-    """
-    Update own user.
-    """
-    'confort'
-    'economico'
-    'xl'
-    retono = [
-        {
-            'titulo': 'Confort',
-            'tipo_veiculo': 'confort',
-            'subtitulo': '...',
-            'valor': 10.5,
-        },
-        {
-            'titulo': 'Econômico',
-            'tipo_veiculo': 'economico',
-            'subtitulo': '...',
-            'valor': 10.5,
-        },
-        {
-            'titulo': 'Xl',
-            'tipo_veiculo': 'xl',
-            'subtitulo': '...',
-            'valor': 10.5,
-        }
-    ]
-    return retono
 
 
 @router.patch("/me/password", response_model=Message)
