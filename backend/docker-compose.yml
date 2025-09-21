@@ -2,22 +2,18 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:16
+    image: postgis/postgis:15-3.3 # Usando uma imagem oficial do PostGIS
+    container_name: postgis_db
     restart: always
-    container_name: postgres_db
-    environment:
-      POSTGRES_USER: meuusuario
-      POSTGRES_PASSWORD: senhasecreta
-      POSTGRES_DB: meubanco
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    networks:
-      - backend
+    environment:
+      POSTGRES_USER: user # Usuário do banco de dados
+      POSTGRES_PASSWORD: password # Senha do banco de dados
+      POSTGRES_DB: geodata # Nome do banco de dados
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
 volumes:
   postgres_data:
-
-networks:
-  backend:
+    driver: local
