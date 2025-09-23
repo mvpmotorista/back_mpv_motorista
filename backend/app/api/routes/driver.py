@@ -29,7 +29,6 @@ class UserBase(BaseModel):
     telefone: Optional[str] = None
     data_nascimento: Optional[date] = None
     cpf: Optional[str] = None
-    cnh: Optional[str] = None
     cnh_arquivo: Optional[str] = None
     logradouro: Optional[str] = None
     numero: Optional[str] = None
@@ -38,6 +37,7 @@ class UserBase(BaseModel):
     cep: Optional[str] = None
     cidade: Optional[str] = None
     estado: Optional[str] = None
+    path:  Optional[str] = None
 
 
 class DriverCreate(UserBase): ...
@@ -112,7 +112,7 @@ async def create_driver(user_in: DriverCreate, session: AsyncSessionDep):
         telefone=user_in.telefone,
         data_nascimento=user_in.data_nascimento,
         cpf=user_in.cpf,
-        cnh=user_in.cnh,
+        # cnh=user_in.cnh,
         cnh_arquivo=user_in.cnh_arquivo,
         logradouro=user_in.logradouro,
         numero=user_in.numero,
@@ -182,24 +182,35 @@ async def create_driver(user_in: DriverCreate, session: AsyncSessionDep):
 #     return new_user
 
 
-@router.post("/upload-crlv/")
-async def register_vehicle(session: AsyncSessionDep, file: UploadFile = File(...)):
-    if not file.filename.lower().endswith(".pdf"):
+class UploadCRLVRequest(BaseModel):
+    path: str
+
+
+@router.post("/register_vehicle")
+async def register_vehicle(
+    payload: UploadCRLVRequest,
+    session: AsyncSessionDep,  # se for via Depends, ajuste: session: AsyncSessionDep
+):
+    filename = payload.path
+
+    if not filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Apenas arquivos PDF são permitidos.")
+    file = SupabaseStorageService().dowload_file(filename)
     text = leitor_crlv.cast_pdf_to_text(file)
     vehicle_parsed = leitor_crlv.parse_crlv_text(text)
+
     vehicle = VeiculoMotorista(
-        crlv=None,
+        crlv=payload.path,
         placa=vehicle_parsed.veiculo.placa,
         cor=vehicle_parsed.veiculo.cor,
     )
     session.add(vehicle)
     await session.commit()
-    return {}
+    return {"status": "ok"}
 
 
 @router.post("/upload")
 async def upload_pdf(session: AsyncSessionDep, file: UploadFile = File(...)):
-    filename = 'crlv/' + str(uuid4()) + '.pdf'
+    filename = str(uuid4()) + '_' + file.filename
     resultado = SupabaseStorageService().upload_fileobj(file, filename, file.content_type)
-    return {'url': filename}
+    return resultado
