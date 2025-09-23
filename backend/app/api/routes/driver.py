@@ -1,27 +1,22 @@
-import asyncio
-import uuid
-from datetime import date, datetime
-from typing import Any, Optional
+from datetime import date
+from typing import Optional
 
 import jwt
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_serializer
-from sqlmodel import col, delete, func, select
+from fastapi import APIRouter, File, HTTPException, UploadFile
+from pydantic import BaseModel, ConfigDict, EmailStr
+from sqlmodel import select
 
-from app import crud
 from app.api.deps import (
     AsyncSessionDep,
-    CurrentUser,
-    get_current_active_superuser,
 )
-from app.core.config import settings
-from app.core.security import get_password_hash, verify_password
+from app.core.models.core import VeiculoMotorista
+from app.services import leitor_crlv
 from app.users.models.users import (
     User,
 )
 
 # from app.schemas.perfis import PerfilMe
-from app.utils import generate_new_account_email, send_email
+
 
 router = APIRouter(prefix="/driver", tags=["driver"])
 
@@ -44,7 +39,7 @@ class UserBase(BaseModel):
     estado: Optional[str] = None
 
 
-class UserCreate(UserBase): ...
+class DriverCreate(UserBase): ...
 
 
 class UserRead(UserBase):
@@ -54,6 +49,11 @@ class UserRead(UserBase):
 
 
 class NewAcount(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+    token: str
+
+
+class CRLVe(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
     token: str
 
@@ -74,7 +74,7 @@ async def account_status(payload: NewAcount, session: AsyncSessionDep):
 
 
 @router.post("", response_model=UserRead)
-async def create_driver(user_in: UserCreate, session: AsyncSessionDep):
+async def create_driver(user_in: DriverCreate, session: AsyncSessionDep):
     # verificar se já existe
     # token = jwt.decode(dados.token, options={"verify_signature": False})
     result = await session.execute(select(User).where(User.email == user_in.email))
@@ -125,3 +125,73 @@ async def create_driver(user_in: UserCreate, session: AsyncSessionDep):
     await session.commit()
     await session.refresh(new_user)
     return new_user
+
+
+# @router.post("/vehicle", response_model=UserRead)
+# async def create_vehicle(user_in: DriverCreate, session: AsyncSessionDep):
+#     # verificar se já existe
+#     # token = jwt.decode(dados.token, options={"verify_signature": False})
+#     result = await session.execute(select(User).where(User.email == user_in.email))
+#     db_user = result.scalars().first()
+#     if db_user:
+#         if 'driver' == db_user.role:
+#             raise HTTPException(status_code=400, detail="Email já registrado")
+#         else:
+#             db_user.role = 'driver'
+#             db_user.full_name = user_in.full_name
+#             db_user.genero = user_in.genero
+#             db_user.telefone = user_in.telefone
+#             db_user.data_nascimento = user_in.data_nascimento
+#             db_user.cpf = user_in.cpf
+#             db_user.cnh = user_in.cnh
+#             db_user.cnh_arquivo = user_in.cnh_arquivo
+#             db_user.logradouro = user_in.logradouro
+#             db_user.numero = user_in.numero
+#             db_user.complemento = user_in.complemento
+#             db_user.bairro = user_in.bairro
+#             db_user.cep = user_in.cep
+#             db_user.cidade = user_in.cidade
+#             db_user.estado = 'pr'
+#             await session.commit()
+#             await session.refresh(db_user)
+#             return db_user
+#     # criar novo user
+#     new_user = User(
+#         email=user_in.email,
+#         hashed_password='dsdsdsds',
+#         full_name=user_in.full_name,
+#         role='driver',
+#         genero=user_in.genero,
+#         telefone=user_in.telefone,
+#         data_nascimento=user_in.data_nascimento,
+#         cpf=user_in.cpf,
+#         cnh=user_in.cnh,
+#         cnh_arquivo=user_in.cnh_arquivo,
+#         logradouro=user_in.logradouro,
+#         numero=user_in.numero,
+#         complemento=user_in.complemento,
+#         bairro=user_in.bairro,
+#         cep=user_in.cep,
+#         cidade=user_in.cidade,
+#         estado='pr',
+#     )
+#     session.add(new_user)
+#     await session.commit()
+#     await session.refresh(new_user)
+#     return new_user
+
+
+@router.post("/upload-crlv/")
+async def upload_pdf(session: AsyncSessionDep, file: UploadFile = File(...)):
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Apenas arquivos PDF são permitidos.")
+    text = leitor_crlv.cast_pdf_to_text(file)
+    vehicle_parsed = leitor_crlv.parse_crlv_text(text)
+    vehicle = VeiculoMotorista(
+        crlv=None,
+        placa=vehicle_parsed.veiculo.placa,
+        cor=vehicle_parsed.veiculo.cor,
+    )
+    session.add(vehicle)
+    await session.commit()
+    return {}

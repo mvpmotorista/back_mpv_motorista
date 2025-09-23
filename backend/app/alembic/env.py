@@ -92,14 +92,14 @@ def run_migrations_online() -> None:
             return True
         if type_ == "table":
             # this **will* include the default schema
-            return name not in ["spatial_ref_sys","alembic_version"]
+            return name not in ["spatial_ref_sys", "alembic_version"]
         if type_ == "schema":
             # this **will* include the default schema
             return name in ["public", None]
         else:
             return True
+
     def include_object(object, name, type_, reflected, compare_to):
-        print(object)
         if type_ == "index" and name == "idx_users_current_location":
             return False
         return True
@@ -122,21 +122,13 @@ def run_migrations_online() -> None:
             # include_schemas=True,
             include_name=include_name,
             version_table_schema='public',
-            include_object=include_object
+            include_object=include_object,
             # compare_type=True,
         )
         connection.dialect.default_schema_name = 'public'
         inspector = inspect(connectable)
-        print("Schemas visíveis pelo inspector:", inspector.get_schema_names())
-        
 
         with context.begin_transaction():
-            result = connection.execute(text("SELECT current_schema();"))
-            print('result', result.scalar())
-            result = connection.execute(text("SELECT version_num FROM alembic_version;"))
-            current_version = result.scalar()
-            print(f"Current Alembic stamp in DB: {current_version}")
-
             # breakpoint()
             context.run_migrations()
 
