@@ -1,6 +1,6 @@
 from datetime import date
 from typing import Optional
-
+from uuid import uuid4
 import jwt
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel, ConfigDict, EmailStr
@@ -11,6 +11,7 @@ from app.api.deps import (
 )
 from app.core.models.core import VeiculoMotorista
 from app.services import leitor_crlv
+from app.services.supabase import SupabaseStorageService
 from app.users.models.users import (
     User,
 )
@@ -195,3 +196,10 @@ async def upload_pdf(session: AsyncSessionDep, file: UploadFile = File(...)):
     session.add(vehicle)
     await session.commit()
     return {}
+
+
+@router.post("/upload")
+async def upload_pdf(session: AsyncSessionDep, file: UploadFile = File(...)):
+    filename = 'crlv/' + str(uuid4()) + '.pdf'
+    resultado = SupabaseStorageService().upload_fileobj(file, filename, file.content_type)
+    return {'url': filename}
