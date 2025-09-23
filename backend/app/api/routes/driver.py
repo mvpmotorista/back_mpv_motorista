@@ -183,7 +183,7 @@ async def create_driver(user_in: DriverCreate, session: AsyncSessionDep):
 
 
 @router.post("/upload-crlv/")
-async def upload_pdf(session: AsyncSessionDep, file: UploadFile = File(...)):
+async def register_vehicle(session: AsyncSessionDep, file: UploadFile = File(...)):
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Apenas arquivos PDF são permitidos.")
     text = leitor_crlv.cast_pdf_to_text(file)
