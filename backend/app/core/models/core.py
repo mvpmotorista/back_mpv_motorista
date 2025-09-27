@@ -26,13 +26,12 @@ class Log(Base):
 #     }
 
 
-
 class VeiculoMotorista(Log):
     __tablename__ = "veiculos_motoristas"
     __table_args__ = {"schema": None}
 
-    id = Column(Integer, primary_key=True, index=True)
-    motorista_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    motorista_id = Column(Integer, ForeignKey("users.id", ondelete='SET NULL'))
 
     crlv = Column(String(1000), nullable=True)
     placa = Column(String(10), nullable=True)
