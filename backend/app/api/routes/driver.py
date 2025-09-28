@@ -80,9 +80,6 @@ async def account_status(payload: NewAcount, session: AsyncSessionDep):
     if db_user:
         return {'registry_completed': db_user.registry_completed, 'registry_approved': db_user.registry_approved}
     else:
-        # new_user = User(email=email, hashed_password='dsdsdsds', full_name='cadastro imcompleto', role='driver')
-        # session.add(new_user)
-        # await session.commit()
         return {'registry_completed': False, 'registry_approved': False}
 
 
@@ -142,9 +139,6 @@ async def create_driver(dados: DriverRegister, session: AsyncSessionDep):  # ver
         await session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-
-class UploadCRLVRequest(BaseModel):
-    path: str
 
 
 @router.get("/vehicles")
