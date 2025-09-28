@@ -103,7 +103,7 @@ class User(Log, Base):
     cnh_arquivo = Column(String(1000), nullable=True)
     registry_completed = Column(Boolean, default=False, nullable=True)
     registry_approved = Column(Boolean, default=False, nullable=True)
-    
+
     # Endereço
 
     logradouro = Column(String(100), nullable=True)

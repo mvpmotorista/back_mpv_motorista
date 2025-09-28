@@ -122,3 +122,13 @@ async def login_supabase(session: AsyncSessionDep, token: Annotated[str, Body(..
     decoded_payload = jwt.decode(token, options={"verify_signature": False})
     novo_token = Token(access_token=security.create_access_token(subject=decoded_payload['sub'], expires_delta=access_token_expires))
     return novo_token
+
+
+@router.post("/login/supabase/driver", response_model=Token)
+async def login_supabase_driver(session: AsyncSessionDep, token: Annotated[str, Body(..., embed=True)]) -> Token:
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    decoded_payload = jwt.decode(token, options={"verify_signature": False})
+    novo_token = Token(
+        access_token=security.create_access_token(subject=decoded_payload['sub'], expires_delta=access_token_expires)
+    )
+    return novo_token

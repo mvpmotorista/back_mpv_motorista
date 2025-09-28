@@ -1,8 +1,10 @@
-from datetime import date
 import io
+from datetime import date
 from typing import Optional
 from uuid import uuid4
+
 import jwt
+import sqlalchemy.exc
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel, ConfigDict, EmailStr
 from sqlmodel import select
@@ -17,9 +19,6 @@ from app.services.supabase import SupabaseStorageService
 from app.users.models.users import (
     User,
 )
-
-# from app.schemas.perfis import PerfilMe
-
 
 router = APIRouter(prefix="/driver", tags=["driver"])
 
@@ -100,54 +99,66 @@ async def user_info(
 
 @router.post("", response_model=UserRead)
 async def create_driver(dados: DriverRegister, session: AsyncSessionDep):  # verificar se já existe
-    new_user = User(
-        email=dados.user.email,
-        full_name=dados.user.full_name,
-        role='driver',
-        hashed_password='dsdsdsds',  # gerar senha aleatória e enviar por email
-        genero=dados.user.genero,
-        telefone=dados.user.telefone,
-        data_nascimento=dados.user.data_nascimento,
-        cpf=dados.user.cpf,
-        # cnh=user_in.cnh,
-        cnh_arquivo=dados.user.cnh_arquivo,
-        logradouro=dados.user.logradouro,
-        numero=dados.user.numero,
-        complemento=dados.user.complemento,
-        bairro=dados.user.bairro,
-        cep=dados.user.cep,
-        cidade=dados.user.cidade,
-        estado='pr',
-    )
-    session.add(new_user)
-    await session.flush()
-    await session.refresh(new_user)
-    file = SupabaseStorageService().dowload_file(dados.veiculo_motorista.crlv_arquivo)
-    text = leitor_crlv.cast_pdf_to_text(io.BytesIO(file))
-    vehicle_parsed = leitor_crlv.parse_crlv_text(text)
-    vehicle = VeiculoMotorista(
-        placa=vehicle_parsed.veiculo.placa,
-        cor=vehicle_parsed.veiculo.cor,
-        motorista_id=new_user.id,
-    )
-    session.add(vehicle)
-    await session.commit()
-    return new_user
+    try:
+        new_user = User(
+            email=dados.user.email,
+            full_name=dados.user.full_name,
+            role='driver',
+            hashed_password='dsdsdsds',  # gerar senha aleatória e enviar por email
+            genero=dados.user.genero,
+            telefone=dados.user.telefone,
+            data_nascimento=dados.user.data_nascimento,
+            cpf=dados.user.cpf,
+            # cnh=user_in.cnh,
+            cnh_arquivo=dados.user.cnh_arquivo,
+            logradouro=dados.user.logradouro,
+            numero=dados.user.numero,
+            complemento=dados.user.complemento,
+            bairro=dados.user.bairro,
+            cep=dados.user.cep,
+            cidade=dados.user.cidade,
+            estado='pr',
+            registry_completed=True,
+            registry_approved=True,
+        )
+        session.add(new_user)
+        await session.flush()
+        await session.refresh(new_user)
+        file = SupabaseStorageService().dowload_file(dados.veiculo_motorista.crlv_arquivo)
+        text = leitor_crlv.cast_pdf_to_text(io.BytesIO(file))
+        vehicle_parsed = leitor_crlv.parse_crlv_text(text)
+        vehicle = VeiculoMotorista(
+            placa=vehicle_parsed.veiculo.placa,
+            cor=vehicle_parsed.veiculo.cor,
+            motorista_id=new_user.id,
+        )
+        session.add(vehicle)
+        await session.commit()
+        return new_user
+    except sqlalchemy.exc.IntegrityError:
+        await session.rollback()
+        raise HTTPException(status_code=400, detail="E-mail já cadastrado")
+    except Exception as e:
+        await session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 class UploadCRLVRequest(BaseModel):
     path: str
 
 
-@router.post("/register_vehicle")
+@router.get("/vehicles")
 async def register_vehicle(
-    payload: UploadCRLVRequest,
+    current_user: CurrentUser,
     session: AsyncSessionDep,  # se for via Depends, ajuste: session: AsyncSessionDep
 ):
-    filename = payload.path
+    stmt = select(VeiculoMotorista.cor, VeiculoMotorista.placa,VeiculoMotorista.id).where(
+        VeiculoMotorista.motorista_id == current_user.id, VeiculoMotorista.is_active
+    )
 
-    await session.commit()
-    return {"status": "ok"}
+    await session.execute(stmt)
+    result = await session.execute(stmt)
+    return result.mappings().all()
 
 
 @router.post("/upload")
